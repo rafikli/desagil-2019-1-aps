@@ -40,4 +40,5 @@ public class OrGate extends Gate {
                 throw new IndexOutOfBoundsException(inputPin);
         }
     }
+
 }
