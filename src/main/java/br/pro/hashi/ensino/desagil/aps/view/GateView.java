@@ -20,7 +20,7 @@ public class GateView extends FixedPanel implements ItemListener {
     private final Switch[] switches;
     private final Gate gate;
     private final JCheckBox[] inputBoxes;
-    private final JCheckBox outputBox;
+    private final JCheckBox[] outputBoxes;
     private final Image image;
 
     public GateView(Gate gate) {
@@ -29,9 +29,10 @@ public class GateView extends FixedPanel implements ItemListener {
         this.gate = gate;
 
         int inputSize = gate.getInputSize();
-
+        int outputSize = gate.getOutputSize();
         switches = new Switch[inputSize];
         inputBoxes = new JCheckBox[inputSize];
+        outputBoxes = new JCheckBox[outputSize];
 
         for (int i = 0; i < inputSize; i++) {
             switches[i] = new Switch();
@@ -40,9 +41,12 @@ public class GateView extends FixedPanel implements ItemListener {
             gate.connect(i, switches[i]);
         }
 
-        outputBox = new JCheckBox();
+        for (int i = 0; i < outputSize; i++) {
+            outputBoxes[i] = new JCheckBox();
+            outputBoxes[i].setEnabled(false);
+        }
 
-        int x, y, step;
+        int x, y, step, y2;
 
         x = BORDER;
         y = -(SWITCH_SIZE / 2);
@@ -51,8 +55,16 @@ public class GateView extends FixedPanel implements ItemListener {
             y += step;
             add(inputBox, x, y, SWITCH_SIZE, SWITCH_SIZE);
         }
-
-        add(outputBox, BORDER + SWITCH_SIZE + GATE_WIDTH, (GATE_HEIGHT - SWITCH_SIZE) / 2, SWITCH_SIZE, SWITCH_SIZE);
+        if(gate.getOutputSize()>1) {
+            y2 = -(SWITCH_SIZE / 2);
+            for (JCheckBox outputBox : outputBoxes) {
+                y2 += step;
+                add(outputBox, BORDER + SWITCH_SIZE + GATE_WIDTH, y2, SWITCH_SIZE, SWITCH_SIZE);
+            }
+        }
+        else{
+            add(outputBoxes[0], BORDER + SWITCH_SIZE + GATE_WIDTH, (GATE_HEIGHT - SWITCH_SIZE) / 2, SWITCH_SIZE, SWITCH_SIZE);
+        }
 
         String name = gate.toString() + ".png";
         URL url = getClass().getClassLoader().getResource(name);
@@ -62,7 +74,7 @@ public class GateView extends FixedPanel implements ItemListener {
             inputBox.addItemListener(this);
         }
 
-        outputBox.setEnabled(false);
+
 
         update();
     }
@@ -76,11 +88,17 @@ public class GateView extends FixedPanel implements ItemListener {
             }
         }
 
-        boolean result = gate.read();
+        if (gate.getOutputSize() > 1) {
+            boolean result1 = gate.read(0);
+            boolean result2 = gate.read(1);
+            outputBoxes[0].setSelected(result1);
+            outputBoxes[1].setSelected(result2);
 
-        outputBox.setSelected(result);
+        } else {
+            boolean result = gate.read(0);
+            outputBoxes[0].setSelected(result);
+        }
     }
-
     @Override
     public void itemStateChanged(ItemEvent event) {
         update();
